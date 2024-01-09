@@ -145,8 +145,11 @@ class Dockerize(object):
                                   docker=self.docker))
 
     def makedirs(self, path):
-        if not os.path.isdir(path):
-            os.makedirs(path)
+        try:
+            if not os.path.isdir(path):
+                os.makedirs(path)
+        except FileExistsError:
+            pass
 
     def populate(self):
         '''Add config files to the image using built-in templates.  This is
@@ -167,6 +170,10 @@ class Dockerize(object):
         '''Copy a file into the image.  This uses "rsync" to perform the
         actual copy, since rsync has robust handling of directory trees and
         symlinks.'''
+
+        if ("//" in src):
+            LOG.debug('Fixing double // in path "%s"', src)
+            src = src.replace("//", "/")
 
         if dst is None:
             dst = src
